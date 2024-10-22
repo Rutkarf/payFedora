@@ -1,0 +1,42 @@
+version: '3.8'  # Version de Docker Compose
+
+services:
+  web:
+    build: .
+    container_name: pay_web  # Nom du conteneur pour le serveur web
+    ports:
+      - "8080:80"  # Redirige le port 80 du conteneur vers le port 8080 de l'hôte
+    volumes:
+      - .:/var/www/html  # Synchroniser le répertoire de travail avec le conteneur
+    depends_on:
+      - db  # Assure que le conteneur web démarre après la base de données
+    environment:
+      - MYSQL_HOST=db  # Pointage vers le service 'db'
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=userpassword
+      - MYSQL_DATABASE=pay_db
+    networks:
+      - paynet
+
+  db:
+    image: mysql:8.0  # Utilisation de MySQL 8.0
+    container_name: pay_db  # Nom du conteneur pour la base de données
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: pay_db
+      MYSQL_USER: user
+      MYSQL_PASSWORD: userpassword
+    volumes:
+      - db_data:/var/lib/mysql  # Stocker les données MySQL dans un volume persistant
+    ports:
+      - "3306:3306"  # Rediriger le port 3306 pour accéder à MySQL depuis l'hôte
+    networks:
+      - paynet
+
+networks:
+  paynet:
+    driver: bridge  # Utilisation d'un réseau de pont pour connecter les conteneurs
+
+volumes:
+  db_data:
+    driver: local  # Stockage local des données MySQL
